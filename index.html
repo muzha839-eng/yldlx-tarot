@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🌟 塔罗生日牌 🌟</title>
+    <style>
+        body {
+            background: linear-gradient(to bottom, #fff0f5, #ffe4e1);
+            font-family: "Microsoft YaHei", sans-serif;
+            margin: 0;
+            padding: 20px;
+            text-align: center;
+        }
+        h1 { color: #c71585; font-size: 2.8rem; margin: 20px 0; }
+        .container { max-width: 1100px; margin: 0 auto; }
+
+        .input-box {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(199, 21, 133, 0.15);
+            margin: 20px auto;
+            max-width: 700px;
+        }
+
+        input {
+            width: 100%;
+            padding: 14px;
+            margin: 10px 0;
+            border: 2px solid #ffc0cb;
+            border-radius: 12px;
+            font-size: 17px;
+        }
+
+        button {
+            background: #c71585;
+            color: white;
+            padding: 16px 40px;
+            font-size: 18px;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+
+        .result-container {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            flex-wrap: wrap;
+            margin-top: 30px;
+        }
+
+        .flip-card {
+            width: 100%;
+            max-width: 360px;
+            height: 580px;
+            perspective: 1200px;
+            margin: 10px;
+            cursor: pointer;
+        }
+
+        .flip-card-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            transition: transform 0.9s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+            transform-style: preserve-3d;
+            border-radius: 18px;
+            box-shadow: 0 15px 35px rgba(199, 21, 133, 0.25);
+        }
+
+        .flip-card.flipped .flip-card-inner {
+            transform: rotateY(180deg);
+        }
+
+        .flip-card-front, .flip-card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 18px;
+            backface-visibility: hidden;
+        }
+
+        .flip-card-front {
+            background: #0f0f1e;
+            border: 8px solid #c71585;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .flip-card-back {
+            background: white;
+            border: 8px solid #c71585;
+            transform: rotateY(180deg);
+            padding: 20px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .card-back-img { width: 85%; }
+        .flip-card-back img {
+            width: 100%;
+            max-height: 320px;
+            object-fit: contain;
+            margin-top: 10px;
+            border-radius: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🌟 塔罗生日牌 🌟</h1>
+        <p style="font-size:18px;color:#c71585;">你的生日 + TA的生日 + TA的名字，共同编织浪漫命运</p>
+
+        <div class="input-box">
+            <label>✨ 你的生日 (YYYY-MM-DD)</label><br>
+            <input type="text" id="my_birth" placeholder="e.g. 1995-07-15"><br><br>
+
+            <label>✨ TA的生日 (YYYY-MM-DD)</label><br>
+            <input type="text" id="her_birth" placeholder="e.g. 1996-12-25"><br><br>
+
+            <label>💕 TA的名字</label><br>
+            <input type="text" id="her_name" placeholder="name"><br><br>
+
+            <button onclick="calculate()"> 计算两人之间的命途 </button>
+        </div>
+
+        <div id="result" style="display:none;">
+            <div class="result-container">
+                <!-- 你是TA的 -->
+                <div class="flip-card" onclick="toggleFlip(this)">
+                    <div class="flip-card-inner">
+                        <div class="flip-card-front">
+                            <img src="images/CardBacks.png" class="card-back-img">
+                        </div>
+                        <div class="flip-card-back" id="your_back"></div>
+                    </div>
+                </div>
+
+                <!-- TA是你的 -->
+                <div class="flip-card" onclick="toggleFlip(this)">
+                    <div class="flip-card-inner">
+                        <div class="flip-card-front">
+                            <img src="images/CardBacks.png" class="card-back-img">
+                        </div>
+                        <div class="flip-card-back" id="her_back"></div>
+                    </div>
+                </div>
+
+                <!-- 偏移牌 -->
+                <div class="flip-card" onclick="toggleFlip(this)">
+                    <div class="flip-card-inner">
+                        <div class="flip-card-front">
+                            <img src="images/CardBacks.png" class="card-back-img">
+                        </div>
+                        <div class="flip-card-back" id="offset_back"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 音效 -->
+    <audio id="chime" src="https://orangefreesounds.com/wp-content/uploads/2017/09/Magical-chime-sound-effect.mp3"></audio>
+    <audio id="flipSound" src="flip.mp3"></audio>
+
+    <script>
+        const major_arcana = {
+            0: {name: "愚者", meaning: "新的开始、冒险、无畏的探索。", image: "images/00-TheFool.png"},
+            1: {name: "魔术师", meaning: "创造力、技能、把想法变为现实。", image: "images/01-TheMagician.png"},
+            2: {name: "女祭司", meaning: "直觉、内在智慧、神秘的事物。", image: "images/02-TheHighPriestess.png"},
+            3: {name: "皇后", meaning: "丰盛、滋养、创造与母性。", image: "images/03-TheEmpress.png"},
+            4: {name: "皇帝", meaning: "结构、权威、稳定与秩序。", image: "images/04-TheEmperor.png"},
+            5: {name: "教皇", meaning: "传统、指导、精神价值观。", image: "images/05-TheHierophant.png"},
+            6: {name: "恋人", meaning: "关系、重要选择、和谐与联盟。", image: "images/06-TheLovers.png"},
+            7: {name: "战车", meaning: "胜利、方向感、克服障碍。", image: "images/07-TheChariot.png"},
+            8: {name: "力量", meaning: "内在勇气、耐心、温柔的力量。", image: "images/08-Strength.png"},
+            9: {name: "隐士", meaning: "内省、孤独中寻找智慧。", image: "images/09-TheHermit.png"},
+            10: {name: "命运之轮", meaning: "变化、周期、命运的转动。", image: "images/10-WheelOfFortune.png"},
+            11: {name: "正义", meaning: "公平、因果、真相与平衡。", image: "images/11-Justice.png"},
+            12: {name: "倒吊人", meaning: "牺牲、新的视角、暂停与放下。", image: "images/12-TheHangedMan.png"},
+            13: {name: "死神", meaning: "转变、结束旧事物、迎来新生。", image: "images/13-Death.png"},
+            14: {name: "节制", meaning: "平衡、调和、中庸之道。", image: "images/14-Temperance.png"},
+            15: {name: "恶魔", meaning: "束缚、物质欲望、面对阴影。", image: "images/15-TheDevil.png"},
+            16: {name: "塔", meaning: "突然的改变、崩塌后重建。", image: "images/16-TheTower.png"},
+            17: {name: "星星", meaning: "希望、灵感、治愈与指引。", image: "images/17-TheStar.png"},
+            18: {name: "月亮", meaning: "幻觉、直觉、潜意识的探索。", image: "images/18-TheMoon.png"},
+            19: {name: "太阳", meaning: "成功、活力、快乐与清晰。", image: "images/19-TheSun.png"},
+            20: {name: "审判", meaning: "觉醒、召唤、内在的复苏。", image: "images/20-Judgement.png"},
+            21: {name: "世界", meaning: "完成、整合、圆满的循环。", image: "images/21-TheWorld.png"}
+        };
+
+        const offset_meanings = {
+            0: "纯真的冒险精神轻轻搅动你们的命运",1: "意志与创造力在你们之间流动",
+            2: "直觉与神秘感让彼此更靠近",3: "丰盛与滋养的能量包围着你们",
+            4: "稳定的结构与秩序守护这段缘分",5: "传统与智慧在爱中得到传承",
+            6: "恋人的选择与和谐深深连接你们",7: "胜利的意志推动你们共同前进",
+            8: "温柔而强大的内在力量相互支撑",9: "内省的智慧让爱变得更深刻",
+            10: "命运之轮悄然转动，带来惊喜",11: "公平与因果让这份爱更加平衡",
+            12: "新的视角与放下带来更自由的爱",13: "深刻的转变让关系焕然一新",
+            14: "温柔的平衡与调和充满你们之间",15: "面对阴影后，爱变得更加真实",
+            16: "突然的觉醒与重建让爱更坚固",17: "希望与灵感如星光照亮彼此",
+            18: "潜意识的直觉在梦中指引你们",19: "温暖的快乐与活力充满这段关系",
+            20: "内在的觉醒与召唤让爱升华",21: "圆满的循环，你们已找到归属"
+        };
+
+        function calculate_base(year, month, day) {
+            let total = parseInt(year.toString() + month.toString().padStart(2,'0') + day.toString().padStart(2,'0'));
+            while (total > 22) total = total.toString().split('').reduce((a,b)=>a+parseInt(b),0);
+            return total === 22 ? 0 : total;
+        }
+
+        function playChime() {
+            const audio = document.getElementById('chime');
+            audio.currentTime = 0;
+            audio.play();
+        }
+
+        function playFlipSound() {
+            const audio = document.getElementById('flipSound');
+            audio.currentTime = 0;
+            audio.play();
+        }
+
+        function calculate() {
+            const myBirth = document.getElementById('my_birth').value;
+            const herBirth = document.getElementById('her_birth').value;
+            const herName = document.getElementById('her_name').value.trim();
+
+            if (!myBirth || !herBirth || !herName) {
+                alert("请填写所有信息！");
+                return;
+            }
+
+            playChime();
+
+            const [y1, m1, d1] = myBirth.split('-').map(Number);
+            const [y2, m2, d2] = herBirth.split('-').map(Number);
+
+            const A = calculate_base(y1, m1, d1);
+            const B = calculate_base(y2, m2, d2);
+
+            let name_offset = 0;
+            for (let char of herName) name_offset += char.charCodeAt(0);
+            while (name_offset > 22) name_offset = name_offset.toString().split('').reduce((a,b)=>a+parseInt(b),0);
+            if (name_offset === 22) name_offset = 0;
+
+            const combined_offset = (B + name_offset) % 22;
+
+            const your = major_arcana[(A + B) % 22];
+            const her = major_arcana[(A + B + combined_offset) % 22];
+            const offset = major_arcana[combined_offset];
+
+            document.getElementById('your_back').innerHTML = `<h3>你是TA的</h3><h2 style="color:#c71585;">【${your.name}】</h2><p>${your.meaning}</p><img src="${your.image}">`;
+            document.getElementById('her_back').innerHTML = `<h3>【${herName}】是你的</h3><h2 style="color:#c71585;">【${her.name}】</h2><p>${her.meaning}</p><img src="${her.image}">`;
+
+            // 修改后的偏移牌内容
+            document.getElementById('offset_back').innerHTML = `
+                <h3>这是你们共同唤醒的偏移牌</h3>
+                <h1 style="color:#c71585;">【${offset.name}】</h1>
+                <p style="font-size:18px;color:#c71585;">${offset_meanings[combined_offset]}</p>
+                <img src="${offset.image}">
+                <p style="margin-top:15px; font-size:17px; color:#c71585; font-weight:bold;">
+                    你们将经受【${offset.name}】的洗礼
+                </p>
+            `;
+
+            document.getElementById('result').style.display = 'block';
+        }
+
+        function toggleFlip(card) {
+            card.classList.toggle('flipped');
+            playFlipSound();
+        }
+    </script>
+</body>
+</html>
