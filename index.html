@@ -117,11 +117,11 @@
         <p style="font-size:18px;color:#c71585;">你的生日 + TA的生日 + TA的名字，共同编织浪漫命运</p>
 
         <div class="input-box">
-            <label>✨ 你的生日 (YYYY-MM-DD)</label><br>
-            <input type="text" id="my_birth" placeholder="e.g. 1995-07-15"><br><br>
+            <label>✨ 你的生日 (8位数字，例如 19970230)</label><br>
+            <input type="text" id="my_birth" placeholder="19970230"><br><br>
 
-            <label>✨ TA的生日 (YYYY-MM-DD)</label><br>
-            <input type="text" id="her_birth" placeholder="e.g. 1996-12-25"><br><br>
+            <label>✨ TA的生日 (8位数字，例如 19961225)</label><br>
+            <input type="text" id="her_birth" placeholder="19961225"><br><br>
 
             <label>💕 TA的名字</label><br>
             <input type="text" id="her_name" placeholder="name"><br><br>
@@ -208,38 +208,34 @@
             20: "内在的觉醒与召唤让爱升华",21: "圆满的循环，你们已找到归属"
         };
 
-        function calculate_base(year, month, day) {
-            let total = parseInt(year.toString() + month.toString().padStart(2,'0') + day.toString().padStart(2,'0'));
-            while (total > 22) total = total.toString().split('').reduce((a,b)=>a+parseInt(b),0);
-            return total === 22 ? 0 : total;
-        }
-
-        function playChime() {
-            const audio = document.getElementById('chime');
-            audio.currentTime = 0;
-            audio.play();
-        }
-
-        function playFlipSound() {
-            const audio = document.getElementById('flipSound');
-            audio.currentTime = 0;
-            audio.play();
-        }
-
-        function calculate() {
-            const myBirth = document.getElementById('my_birth').value;
-            const herBirth = document.getElementById('her_birth').value;
+               function calculate() {
+            let myBirthStr = document.getElementById('my_birth').value.trim();
+            let herBirthStr = document.getElementById('her_birth').value.trim();
             const herName = document.getElementById('her_name').value.trim();
 
-            if (!myBirth || !herBirth || !herName) {
+            if (!myBirthStr || !herBirthStr || !herName) {
                 alert("请填写所有信息！");
                 return;
             }
 
-            playChime();
+            // 自动去掉所有非数字字符，支持 1997-02-30 或 19970230 两种输入
+            myBirthStr = myBirthStr.replace(/\D/g, '');
+            herBirthStr = herBirthStr.replace(/\D/g, '');
 
-            const [y1, m1, d1] = myBirth.split('-').map(Number);
-            const [y2, m2, d2] = herBirth.split('-').map(Number);
+            if (myBirthStr.length !== 8 || herBirthStr.length !== 8) {
+                alert("生日请输入8位数字，例如：19970230");
+                return;
+            }
+
+            const y1 = parseInt(myBirthStr.substring(0, 4));
+            const m1 = parseInt(myBirthStr.substring(4, 6));
+            const d1 = parseInt(myBirthStr.substring(6, 8));
+
+            const y2 = parseInt(herBirthStr.substring(0, 4));
+            const m2 = parseInt(herBirthStr.substring(4, 6));
+            const d2 = parseInt(herBirthStr.substring(6, 8));
+
+            playChime();
 
             const A = calculate_base(y1, m1, d1);
             const B = calculate_base(y2, m2, d2);
@@ -257,8 +253,6 @@
 
             document.getElementById('your_back').innerHTML = `<h3>你是TA的</h3><h2 style="color:#c71585;">【${your.name}】</h2><p>${your.meaning}</p><img src="${your.image}">`;
             document.getElementById('her_back').innerHTML = `<h3>【${herName}】是你的</h3><h2 style="color:#c71585;">【${her.name}】</h2><p>${her.meaning}</p><img src="${her.image}">`;
-
-            // 修改后的偏移牌内容
             document.getElementById('offset_back').innerHTML = `
                 <h3>这是你们共同唤醒的偏移牌</h3>
                 <h1 style="color:#c71585;">【${offset.name}】</h1>
@@ -271,7 +265,6 @@
 
             document.getElementById('result').style.display = 'block';
         }
-
         function toggleFlip(card) {
             card.classList.toggle('flipped');
             playFlipSound();
