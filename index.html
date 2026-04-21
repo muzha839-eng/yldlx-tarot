@@ -117,11 +117,11 @@
         <p style="font-size:18px;color:#c71585;">你的生日 + TA的生日 + TA的名字，共同编织浪漫命运</p>
 
         <div class="input-box">
-            <label>✨ 你的生日 (8位数字，例如 19970230)</label><br>
-            <input type="text" id="my_birth" placeholder="19970230"><br><br>
+            <label>✨ 你的生日 (8位数字，例如 1997年2月30日，则输入19970230)</label><br>
+            <input type="text" id="my_birth" placeholder="yyyymmdd"><br><br>
 
             <label>✨ TA的生日 (8位数字，例如 19961225)</label><br>
-            <input type="text" id="her_birth" placeholder="19961225"><br><br>
+            <input type="text" id="her_birth" placeholder="yyyymmdd"><br><br>
 
             <label>💕 TA的名字</label><br>
             <input type="text" id="her_name" placeholder="name"><br><br>
@@ -131,7 +131,6 @@
 
         <div id="result" style="display:none;">
             <div class="result-container">
-                <!-- 你是TA的 -->
                 <div class="flip-card" onclick="toggleFlip(this)">
                     <div class="flip-card-inner">
                         <div class="flip-card-front">
@@ -141,7 +140,6 @@
                     </div>
                 </div>
 
-                <!-- TA是你的 -->
                 <div class="flip-card" onclick="toggleFlip(this)">
                     <div class="flip-card-inner">
                         <div class="flip-card-front">
@@ -151,7 +149,6 @@
                     </div>
                 </div>
 
-                <!-- 偏移牌 -->
                 <div class="flip-card" onclick="toggleFlip(this)">
                     <div class="flip-card-inner">
                         <div class="flip-card-front">
@@ -208,7 +205,25 @@
             20: "内在的觉醒与召唤让爱升华",21: "圆满的循环，你们已找到归属"
         };
 
-               function calculate() {
+        function calculate_base(year, month, day) {
+            let total = parseInt(year.toString() + month.toString().padStart(2,'0') + day.toString().padStart(2,'0'));
+            while (total > 22) total = total.toString().split('').reduce((a,b)=>a+parseInt(b),0);
+            return total === 22 ? 0 : total;
+        }
+
+        function playChime() {
+            const audio = document.getElementById('chime');
+            audio.currentTime = 0;
+            audio.play();
+        }
+
+        function playFlipSound() {
+            const audio = document.getElementById('flipSound');
+            audio.currentTime = 0;
+            audio.play();
+        }
+
+        function calculate() {
             let myBirthStr = document.getElementById('my_birth').value.trim();
             let herBirthStr = document.getElementById('her_birth').value.trim();
             const herName = document.getElementById('her_name').value.trim();
@@ -218,7 +233,7 @@
                 return;
             }
 
-            // 自动去掉所有非数字字符，支持 1997-02-30 或 19970230 两种输入
+            // 支持 1997-02-30 或 19970230 两种输入方式
             myBirthStr = myBirthStr.replace(/\D/g, '');
             herBirthStr = herBirthStr.replace(/\D/g, '');
 
@@ -265,22 +280,11 @@
 
             document.getElementById('result').style.display = 'block';
         }
+
         function toggleFlip(card) {
             card.classList.toggle('flipped');
             playFlipSound();
         }
     </script>
-            <!-- 留言评论链接 -->
-        <div style="max-width: 800px; margin: 40px auto; padding: 20px; background: white; border-radius: 15px; box-shadow: 0 5px 20px rgba(0,0,0,0.1);">
-            <h2 style="color:#c71585;">💬 欢迎留言 & 评论</h2>
-            <p style="font-size:17px;">
-                喜欢这个塔罗牌吗？欢迎分享你的结果、感受或建议！
-            </p>
-            <a href="https://github.com/muzha839-eng/yldlx-tarot/discussions" 
-               target="_blank"
-               style="display:inline-block; background:#c71585; color:white; padding:14px 30px; font-size:18px; border-radius:50px; text-decoration:none;">
-                👉 点击这里去留言评论
-            </a>
-        </div>
 </body>
 </html>
